@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>404 Found - Lost & Found Community</title>
+
+  <!-- Tailwind (kept) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --glass-1: rgba(255,255,255,0.78);
+      --muted: #64748b;
+      --accent: #38bdf8;
+      --glass-border: rgba(105,142,162,0.08);
+    }
+    *{box-sizing:border-box;font-family:'Nunito',sans-serif}
+    html,body{height:100%;margin:0}
+    body{
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+      background:
+        radial-gradient(1200px 400px at 10% 10%, rgba(255,255,255,0.03), transparent 10%),
+        linear-gradient(135deg, rgba(240,249,255,1) 0%, rgba(224,242,254,1) 25%, rgba(186,230,253,1) 50%, rgba(125,211,252,1) 75%, rgba(56,189,248,1) 100%);
+      position:relative;
+      overflow-x:hidden;
+      color: #0f172a;
+    }
+
+    /* Subtle noise overlay to make gradient feel premium */
+    .noise {
+      pointer-events:none;
+      position:fixed; inset:0; z-index:3;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><filter id="n"><feTurbulence baseFrequency="0.9" numOctaves="1" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.02"/></svg>');
+      mix-blend-mode:overlay;
+      opacity:0.9;
+    }
+
+    /* GLASSY CARDS */
+    .ghibli-card{
+      background:var(--glass-1);
+      backdrop-filter: blur(10px) saturate(110%);
+      border:1px solid var(--glass-border);
+      box-shadow:0 8px 28px rgba(2,6,23,0.08);
+      transition:transform .25s ease, box-shadow .25s ease;
+    }
+    .ghibli-card:hover{ transform:translateY(-6px); box-shadow:0 20px 40px rgba(2,6,23,0.08); }
+
+    /* Floating / subtle animations */
+    .floating { animation: floatSlow 8s ease-in-out infinite; }
+    @keyframes floatSlow { 0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)} }
+
+    /* Title bounce (subtle) */
+    .title-bounce { display:inline-block; animation: titleBounce 3.6s cubic-bezier(.2,.8,.2,1) infinite; transform-origin:center; }
+    @keyframes titleBounce{
+      0%,94%{ transform:translateY(0) scale(1) }
+      96%{ transform:translateY(-4px) scale(1.007) }
+      100%{ transform:translateY(0) scale(1) }
+    }
+
+    /* Micro sparkles near hero */
+    .sparkle { position:absolute; width:6px; height:6px; border-radius:999px; background:linear-gradient(90deg,#fff,#fff); box-shadow:0 0 8px rgba(255,255,255,0.9); opacity:.95; transform-origin:center; }
+    .sparkle.small { width:4px; height:4px; opacity:.8; box-shadow:0 0 6px rgba(255,255,255,0.9); }
+
+    /* magnifier */
+    .magnifier { position:absolute; width:54px; height:54px; border-radius:999px; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 30px rgba(2,6,23,0.12); background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75)); border:1px solid rgba(255,255,255,0.6); }
+
+    /* fade-in helper */
+    .fade-in { opacity:0; transform: translateY(18px); animation: fadeIn .7s ease forwards; }
+    @keyframes fadeIn { to { opacity:1; transform: translateY(0); } }
+
+    /* modal basics */
+    .modal { display:none; position:fixed; inset:0; background: rgba(0,0,0,0.45); z-index:80; align-items:center; justify-content:center; padding:20px; }
+    .modal.active { display:flex; }
+
+    /* swipe modal specifics */
+    .swipe-modal { position: fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:70; padding:24px; }
+    .swipe-modal.active { display:flex; background: linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.2)); }
+
+    /* card basics */
+    .card { border-radius: 12px; background: white; box-shadow: 0 12px 36px rgba(2,6,23,0.14); overflow:hidden; }
+
+    /* skeleton */
+    .skeleton { background: linear-gradient(90deg,#f0f0f0 25%,#e6e6e6 50%,#f0f0f0 75%); background-size:200% 100%; animation: loading 1.4s linear infinite; }
+    @keyframes loading { to { background-position: -200% 0 } }
+
+    /* chat modal */
+    .chat-modal { position: fixed; inset:0; display:none; align-items:flex-end; justify-content:center; z-index:90; }
+    .chat-modal.active { display:flex; }
+
+    /* star button */
+    .star-btn { cursor: pointer; transition: transform .12s ease; }
+    .star-btn:hover { transform: scale(1.15); }
+
+    /* accessibility */
+    *:focus { outline: 3px solid rgba(66,153,225,0.18); outline-offset:2px; }
+
+    /* responsive tweaks */
+    @media (min-width:1024px){ .min-w-72{ min-width:340px } }
+  </style>
+</head>
+<body class="overflow-x-hidden">
+
+  <!-- Subtle noise overlay -->
+  <div class="noise"></div>
+
+  <!-- ---------- Decorative Clouds & Characters (layered) ---------- -->
+  <div aria-hidden="true" style="position:fixed; inset:0; pointer-events:none; z-index:1;">
+    <!-- Far cloud (very subtle) -->
+    <svg class="floating" style="position:absolute; left:6%; top:6%; opacity:0.18; width:240px; height:100px; transform:translateZ(0);"
+         viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g fill="#ffffff">
+        <ellipse cx="40" cy="30" rx="40" ry="22" />
+        <ellipse cx="90" cy="20" rx="30" ry="18" />
+        <ellipse cx="130" cy="32" rx="38" ry="22" />
+      </g>
+    </svg>
+
+    <!-- Middle cloud -->
+    <svg class="floating" style="position:absolute; right:8%; top:12%; animation-delay:0.6s; opacity:0.22; width:320px; height:140px;"
+         viewBox="0 0 300 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g fill="#ffffff">
+        <ellipse cx="50" cy="40" rx="50" ry="26" />
+        <ellipse cx="120" cy="26" rx="42" ry="22" />
+        <ellipse cx="190" cy="48" rx="58" ry="26" />
+      </g>
+    </svg>
+
+    <!-- Near cloud (largest, subtle) -->
+    <svg class="floating" style="position:absolute; left:50%; top:2%; transform:translateX(-50%); animation-duration:14s; opacity:0.12; width:720px; height:220px;"
+         viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g fill="#ffffff">
+        <ellipse cx="160" cy="80" rx="150" ry="48" />
+        <ellipse cx="360" cy="56" rx="120" ry="44" />
+        <ellipse cx="580" cy="86" rx="180" ry="56" />
+      </g>
+    </svg>
+
+    <!-- Two friendly pastel characters (behind hero, subtle) -->
+    <svg style="position:absolute; left:8%; bottom:12%; width:220px; height:220px; opacity:0.95; transform:translateZ(0);"
+         viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- Finder (simple pastel) -->
+      <g transform="translate(12,20)">
+        <circle cx="28" cy="18" r="14" fill="#ffd8d2"/>
+        <rect x="10" y="36" rx="10" width="36" height="48" fill="#9ad8ff"/>
+        <path d="M2 84 q16 10 36 10 q20 0 36 -10" fill="#77c3ff"/>
+      </g>
+    </svg>
+
+    <svg style="position:absolute; right:10%; bottom:10%; width:220px; height:220px; opacity:0.95; transform:translateZ(0);"
+         viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- Seeker (simple pastel) -->
+      <g transform="translate(16,10)">
+        <circle cx="28" cy="20" r="14" fill="#fff0d6"/>
+        <rect x="10" y="40" rx="10" width="36" height="48" fill="#bde9d8"/>
+        <path d="M2 88 q16 10 36 10 q20 0 36 -10" fill="#9be6c4"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Magnifier (floating) -->
+  <div class="magnifier floating" style="right:7rem; top:7.2rem; z-index:10;">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="6" />
+      <path d="M21 21l-4.35-4.35" />
+    </svg>
+  </div>
+
+  <!-- ---------- Header ---------- -->
+  <header class="relative z-20 py-8 px-6">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-4xl font-bold text-slate-800 tracking-tight">
+        <span class="title-bounce">404 Found</span>
+      </h1>
+
+      <div class="space-x-4 flex items-center">
+        <button onclick="openModal('updatesModal')" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2 rounded-2xl shadow font-medium">Updates</button>
+        <button onclick="openModal('faqModal')" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-5 py-2 rounded-2xl shadow font-medium">FAQ</button>
+        <button id="openSwipeBtn" onclick="openSwipe()" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-2 rounded-2xl shadow font-medium">Found Items</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ---------- Main ---------- -->
+  <main class="max-w-7xl mx-auto px-6 py-12 relative z-10">
+    <!-- Hero -->
+    <section class="text-center mb-20 fade-in relative">
+      <h2 class="text-5xl lg:text-6xl font-bold text-slate-800 mb-8 leading-tight">Find What's Lost.<br><span class="text-blue-600">Return What's Found.</span></h2>
+
+      <!-- sparkles near hero -->
+      <div style="position:relative; width:100%; height:1px;">
+        <div class="sparkle" style="left:48%; top:-24px;"></div>
+        <div class="sparkle small" style="left:54%; top:-18px; opacity:.7;"></div>
+        <div class="sparkle small" style="left:42%; top:-20px; opacity:.6;"></div>
+      </div>
+
+      <div class="flex flex-col md:flex-row gap-8 justify-center items-center mt-8">
+        <button onclick="openModal('lostModal')" class="ghibli-card p-8 rounded-3xl text-center min-w-72 transition transform hover:scale-105">
+          <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow">🔎</div>
+          <h3 class="text-xl font-semibold">I Lost Something</h3>
+          <p class="text-slate-600 mt-2">Report your lost item and we'll help you find it</p>
+        </button>
+
+        <button onclick="openModal('foundModal')" class="ghibli-card p-8 rounded-3xl text-center min-w-72 transition transform hover:scale-105">
+          <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center text-white shadow">🎁</div>
+          <h3 class="text-xl font-semibold">I Found Something</h3>
+          <p class="text-slate-600 mt-2">Help return someone's lost item</p>
+        </button>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="mb-12 fade-in">
+      <div class="ghibli-card p-8 rounded-3xl">
+        <h3 class="text-3xl font-bold text-slate-800 mb-4 text-center">About 404 Found</h3>
+        <p class="text-lg text-slate-600 text-center max-w-3xl mx-auto leading-relaxed">
+          At 404 Found, we believe no valuable memory or belonging should stay lost. We are a team of innovators building a community-driven platform where technology bridges the gap, making the lost meet the found.
+        </p>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="mb-12 fade-in">
+      <div class="ghibli-card p-8 rounded-3xl">
+        <h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">How It Works</h3>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="text-center p-4 rounded-2xl bg-white/60">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-2xl flex items-center justify-center text-2xl shadow-sm">📝</div>
+            <h4 class="font-semibold">Report</h4>
+            <p class="text-sm text-slate-600">Click the button and fill out the form.</p>
+          </div>
+          <div class="text-center p-4 rounded-2xl bg-white/60">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-2xl flex items-center justify-center text-2xl shadow-sm">🔍</div>
+            <h4 class="font-semibold">Match</h4>
+            <p class="text-sm text-slate-600">We connect lost items with owners via secure updates.</p>
+          </div>
+          <div class="text-center p-4 rounded-2xl bg-white/60">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-2xl flex items-center justify-center text-2xl shadow-sm">🤝</div>
+            <h4 class="font-semibold">Retrieve</h4>
+            <p class="text-sm text-slate-600">Coordinate a safe pickup with guidance.</p>
+          </div>
+          <div class="text-center p-4 rounded-2xl bg-white/60">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-2xl flex items-center justify-center text-2xl shadow-sm">⭐</div>
+            <h4 class="font-semibold">Feedback</h4>
+            <p class="text-sm text-slate-600">Share your experience to help others.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Industries -->
+    <section class="mb-12 fade-in">
+      <h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">Industries We Serve</h3>
+      <div class="grid md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div class="ghibli-card p-6 rounded-2xl text-center"> <div class="text-3xl mb-3">🏫</div> <h4 class="font-semibold">Schools</h4></div>
+        <div class="ghibli-card p-6 rounded-2xl text-center"> <div class="text-3xl mb-3">🎓</div> <h4 class="font-semibold">Campuses</h4></div>
+        <div class="ghibli-card p-6 rounded-2xl text-center"> <div class="text-3xl mb-3">🏨</div> <h4 class="font-semibold">Hotels</h4></div>
+        <div class="ghibli-card p-6 rounded-2xl text-center"> <div class="text-3xl mb-3">🌳</div> <h4 class="font-semibold">Parks</h4></div>
+        <div class="ghibli-card p-6 rounded-2xl text-center"> <div class="text-3xl mb-3">✈️</div> <h4 class="font-semibold">Airports</h4></div>
+      </div>
+    </section>
+
+    <!-- Recently Found (blank state) -->
+    <section class="mb-12 fade-in">
+      <h3 class="text-2xl font-bold text-slate-800 mb-4 text-center">Recently Found Items</h3>
+      <div class="max-w-4xl mx-auto">
+        <div class="ghibli-card p-8 rounded-3xl text-center">
+          <p class="text-slate-600">No items found yet — items will appear here once reported and verified.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feedback with star rating -->
+    <section class="mb-20 fade-in">
+      <h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">Share Your Experience</h3>
+      <div class="max-w-2xl mx-auto">
+        <div class="ghibli-card p-8 rounded-3xl">
+          <form id="reviewForm" class="space-y-4" onsubmit="submitReview(event)">
+            <div>
+              <label class="block text-sm font-semibold mb-2">Your Name</label>
+              <input type="text" id="reviewName" required class="w-full p-3 border rounded-lg" placeholder="Enter your name">
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold mb-2">Rate Your Experience</label>
+              <div class="flex gap-2 mb-2" id="starContainer">
+                <button type="button" class="star-btn text-3xl text-slate-300" aria-label="1 star">⭐</button>
+                <button type="button" class="star-btn text-3xl text-slate-300" aria-label="2 stars">⭐</button>
+                <button type="button" class="star-btn text-3xl text-slate-300" aria-label="3 stars">⭐</button>
+                <button type="button" class="star-btn text-3xl text-slate-300" aria-label="4 stars">⭐</button>
+                <button type="button" class="star-btn text-3xl text-slate-300" aria-label="5 stars">⭐</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold mb-2">Tell Us About Your Experience</label>
+              <textarea id="reviewText" required class="w-full p-3 border rounded-lg h-28" placeholder="Share your story..."></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-slate-500 to-slate-700 text-white py-3 rounded-lg font-semibold">Share My Review ✨</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ---------- MODALS & SWIPE UI (clean, integrated) ---------- -->
+
+  <!-- Updates Modal -->
+  <div id="updatesModal" class="modal" aria-hidden="true">
+    <div class="ghibli-card p-6 rounded-3xl max-w-2xl mx-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-blue-900">Recent Updates</h3>
+        <button onclick="closeModal('updatesModal')" class="text-gray-500">✕</button>
+      </div>
+      <div id="updatesList" class="space-y-3">
+        <p class="text-slate-600">No recent updates.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Modal -->
+  <div id="faqModal" class="modal" aria-hidden="true">
+    <div class="ghibli-card p-6 rounded-3xl max-w-2xl mx-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-blue-900">Frequently Asked Questions</h3>
+        <button onclick="closeModal('faqModal')" class="text-gray-500">✕</button>
+      </div>
+      <div class="space-y-3 text-slate-700">
+        <div><h4 class="font-semibold">How do I report a lost item?</h4><p>Click the "I Lost Something" button and fill the form.</p></div>
+        <div><h4 class="font-semibold">Is this service free?</h4><p>Yes — 404 Found is free to use.</p></div>
+        <div><h4 class="font-semibold">How do I contact the finder?</h4><p>When a match occurs, you will see a match modal with an option to open chat.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lost & Found forms -->
+  <div id="lostModal" class="modal" aria-hidden="true">
+    <div class="ghibli-card p-6 rounded-3xl max-w-md mx-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-red-700">Report Lost Item</h3>
+        <button onclick="closeModal('lostModal')" class="text-gray-500">✕</button>
+      </div>
+      <form onsubmit="submitLostForm(event)" class="space-y-3">
+        <div><label class="block text-sm font-semibold">Item Name</label><input required class="w-full p-2 border rounded" placeholder="e.g., Blue backpack"></div>
+        <div><label class="block text-sm font-semibold">Where did you lose it?</label><input required class="w-full p-2 border rounded" placeholder="Location"></div>
+        <div><label class="block text-sm font-semibold">Description</label><textarea required class="w-full p-2 border rounded h-20" placeholder="Describe your item"></textarea></div>
+        <div><label class="block text-sm font-semibold">Contact</label><input required type="email" class="w-full p-2 border rounded" placeholder="your.email@example.com"></div>
+        <div class="flex gap-2">
+          <button type="button" class="px-4 py-2 border rounded" onclick="closeModal('lostModal')">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded">Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="foundModal" class="modal" aria-hidden="true">
+    <div class="ghibli-card p-6 rounded-3xl max-w-md mx-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-green-700">Report Found Item</h3>
+        <button onclick="closeModal('foundModal')" class="text-gray-500">✕</button>
+      </div>
+      <form onsubmit="submitFoundForm(event)" class="space-y-3">
+        <div><label class="block text-sm font-semibold">Item Name</label><input required class="w-full p-2 border rounded" placeholder="e.g., Red wallet"></div>
+        <div><label class="block text-sm font-semibold">Where found</label><input required class="w-full p-2 border rounded" placeholder="Location"></div>
+        <div><label class="block text-sm font-semibold">Description</label><textarea required class="w-full p-2 border rounded h-20" placeholder="Describe the item"></textarea></div>
+        <div><label class="block text-sm font-semibold">Contact</label><input required type="email" class="w-full p-2 border rounded" placeholder="your.email@example.com"></div>
+        <div class="flex gap-2">
+          <button type="button" class="px-4 py-2 border rounded" onclick="closeModal('foundModal')">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded">Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Swipe modal (clean, no dummy data) -->
+  <div id="swipeModal" class="swipe-modal" aria-hidden="true" role="dialog" aria-label="Swipe items modal">
+    <div class="max-w-2xl w-full">
+      <div class="bg-white rounded-3xl p-6 relative">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold">Found Items</h3>
+          <button onclick="closeSwipe()" class="text-xl">✕</button>
+        </div>
+
+        <!-- card stack -->
+        <div id="cardStack" class="min-h-[260px] mb-4">
+          <!-- skeleton or cards will render here -->
+        </div>
+
+        <!-- no-items placeholder -->
+        <div id="noItemsPlaceholder" class="text-center text-slate-600" style="display:none;">
+          <p class="text-lg font-medium mb-2">No items available right now</p>
+          <p class="text-sm">We'll notify you when matches appear.</p>
+        </div>
+
+        <div class="flex gap-3 justify-center mt-4">
+          <button id="undoBtn" class="px-4 py-2 rounded bg-gray-100" disabled onclick="undoSwipe()">↺ Undo</button>
+          <button id="rejectBtn" class="px-4 py-2 rounded bg-red-500 text-white" onclick="swipeLeft()">✕ Reject</button>
+          <button id="acceptBtn" class="px-4 py-2 rounded bg-green-600 text-white" onclick="swipeRight()">♥ Accept</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match modal -->
+  <div id="matchModal" class="modal" aria-hidden="true">
+    <div class="ghibli-card p-6 rounded-3xl max-w-lg mx-4 text-center">
+      <h2 id="matchTitle" class="text-2xl font-bold mb-2">It's a Match! 🎉</h2>
+      <p id="matchInfo" class="text-slate-600 mb-4">You can chat with the finder after opening the match chat.</p>
+      <div class="flex gap-3 justify-center">
+        <button onclick="openMatchChat()" class="px-4 py-2 bg-blue-600 text-white rounded">Start Chat</button>
+        <button onclick="closeModal('matchModal')" class="px-4 py-2 border rounded">Later</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match Chat modal (empty until real messages) -->
+  <div id="matchChat" class="chat-modal" aria-hidden="true">
+    <div class="bg-white w-full max-w-2xl rounded-t-3xl shadow-lg" role="dialog" aria-label="Match Chat">
+      <div class="flex items-center justify-between px-4 py-3 border-b">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">👤</div>
+          <div>
+            <div id="chatHeaderTitle" class="font-semibold">Finder</div>
+            <div id="chatHeaderSubtitle" class="text-xs text-slate-500">Matched item</div>
+          </div>
+        </div>
+        <div>
+          <button onclick="closeMatchChat()" class="px-3 py-1">✕</button>
+        </div>
+      </div>
+
+      <div id="chatMessages" class="p-4 max-h-[48vh] overflow-y-auto bg-white">
+        <div id="chatEmptyPlaceholder" class="text-center text-slate-500">
+          <p>No messages yet. Start the conversation.</p>
+        </div>
+      </div>
+
+      <div class="p-4 border-t bg-white flex gap-3">
+        <input id="matchChatInput" class="flex-1 p-3 border rounded" placeholder="Type a message..." aria-label="Message input">
+        <button id="matchSendBtn" class="px-4 py-2 bg-blue-600 text-white rounded" onclick="sendMatchChat()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report modal -->
+  <div id="reportModal" class="modal" aria-hidden="true">
+    <div class="report-content bg-white p-6 rounded-xl max-w-md mx-4">
+      <h3 class="font-bold mb-3">Report Issue</h3>
+      <div class="space-y-2 mb-3">
+        <button class="w-full text-left p-3 border rounded">Item details don't match</button>
+        <button class="w-full text-left p-3 border rounded">Suspicious behavior</button>
+        <button class="w-full text-left p-3 border rounded">Inappropriate messages</button>
+      </div>
+      <div class="flex gap-2 justify-end">
+        <button class="px-4 py-2 rounded bg-gray-200" onclick="hideReportModal()">Cancel</button>
+        <button class="px-4 py-2 rounded bg-red-500 text-white" onclick="submitReport()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutorial overlay (kept and cleaned) -->
+  <div id="tutorialOverlay" class="modal" aria-hidden="true">
+    <div class="tutorial-content text-white max-w-md p-6 text-center">
+      <h2 class="text-2xl font-bold mb-3">Welcome to 404 Found! 👋</h2>
+      <div class="mb-3"><strong>Swipe or drag cards</strong><br>Left to skip, Right to claim your item.</div>
+      <div class="mb-3"><strong>Use keyboard shortcuts</strong><br>← Left | → Right | Enter to accept</div>
+      <div class="mb-3"><strong>When you get a match</strong><br>Open the chat from the match screen to coordinate pickup.</div>
+      <button id="gotItBtn" class="px-4 py-2 rounded bg-blue-500 text-white">Got it!</button>
+    </div>
+  </div>
+
+  <!-- ---------- Scripts (clean, integrated) ---------- -->
+  <script>
+    /**************************************************************************
+     * Small helpers: modal control
+     **************************************************************************/
+    function openModal(id){
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.classList.add('active');
+      el.setAttribute('aria-hidden','false');
+    }
+    function closeModal(id){
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.classList.remove('active');
+      el.setAttribute('aria-hidden','true');
+    }
+
+    /**************************************************************************
+     * Basic form handlers (kept minimal)
+     **************************************************************************/
+    function submitLostForm(e){
+      e.preventDefault();
+      alert('Thanks — your lost item report has been submitted.');
+      closeModal('lostModal');
+    }
+    function submitFoundForm(e){
+      e.preventDefault();
+      alert('Thanks — your found item report has been submitted.');
+      closeModal('foundModal');
+    }
+
+    /**************************************************************************
+     * STAR RATING (fixed & integrated)
+     **************************************************************************/
+    (function setupStars(){
+      window.currentRating = 0;
+      const stars = Array.from(document.querySelectorAll('.star-btn'));
+      stars.forEach((star, i) => {
+        star.addEventListener('click', () => {
+          const clicked = i + 1;
+          // toggle if same
+          window.currentRating = (window.currentRating === clicked) ? 0 : clicked;
+          updateStars();
+        });
+      });
+      function updateStars(){
+        stars.forEach((s, idx) => {
+          if(idx < window.currentRating){
+            s.classList.add('text-yellow-400');
+            s.classList.remove('text-slate-300');
+          } else {
+            s.classList.remove('text-yellow-400');
+            s.classList.add('text-slate-300');
+          }
+        });
+      }
+      window.updateStars = updateStars;
+    })();
+
+    function submitReview(e){
+      e.preventDefault();
+      if(!window.currentRating){
+        alert('Please select a rating before submitting.');
+        return;
+      }
+      // collect minimal data
+      const name = document.getElementById('reviewName').value.trim();
+      const text = document.getElementById('reviewText').value.trim();
+      // For now just alert. Replace with fetch() to your API to save review.
+      alert('Thanks for your review! 🎉');
+      document.getElementById('reviewForm').reset();
+      window.currentRating = 0;
+      if(window.updateStars) window.updateStars();
+    }
+
+    /**************************************************************************
+     * Swipe integration (clean) - NO dummy items included
+     *
+     * Use: call window.loadMatchedItems(itemsArray) from your backend
+     * itemsArray should be an array of objects with:
+     * { id, name, description, location, coordinates:{lat,lng}, image (url), finderName }
+     **************************************************************************/
+    window.matchedItems = []; // empty by default
+    let currentIndex = 0;
+    let swipeHistory = [];
+    let matchedItem = null;
+
+    const cardStackEl = document.getElementById('cardStack');
+    const noItemsPlaceholder = document.getElementById('noItemsPlaceholder');
+    const undoBtn = document.getElementById('undoBtn');
+
+    function openSwipe(){
+      document.getElementById('swipeModal').classList.add('active');
+      document.getElementById('swipeModal').setAttribute('aria-hidden','false');
+      showLoadingSkeleton();
+      setTimeout(renderNextCard, 250);
+    }
+    function closeSwipe(){
+      document.getElementById('swipeModal').classList.remove('active');
+      document.getElementById('swipeModal').setAttribute('aria-hidden','true');
+    }
+
+    function showLoadingSkeleton(){
+      cardStackEl.innerHTML = '<div class="skeleton p-4 rounded min-h-[160px]"><div style="height:56%;border-radius:8px;margin-bottom:12px"></div><div style="height:12px;width:60%;border-radius:6px;margin-bottom:8px"></div><div style="height:12px;width:40%;border-radius:6px"></div></div>';
+      noItemsPlaceholder.style.display = 'none';
+    }
+
+    function renderNextCard(){
+      cardStackEl.innerHTML = '';
+      if(!Array.isArray(window.matchedItems) || window.matchedItems.length === 0 || currentIndex >= window.matchedItems.length){
+        noItemsPlaceholder.style.display = 'block';
+        undoBtn.disabled = swipeHistory.length === 0;
+        return;
+      }
+
+      noItemsPlaceholder.style.display = 'none';
+      const item = window.matchedItems[currentIndex] || {};
+      const card = document.createElement('div');
+      card.className = 'card p-4';
+      card.innerHTML = `
+        <div class="h-44 bg-gray-100 rounded mb-3" style="background-image: url('${item.image || ''}'); background-size: cover; background-position: center;"></div>
+        <h3 class="text-lg font-semibold mb-1">${escapeHtml(item.name || 'Item')}</h3>
+        <p class="text-sm text-slate-600 mb-2">📍 ${escapeHtml(item.location || 'Location')}</p>
+        <p class="text-sm text-slate-500 mb-3">${escapeHtml(item.description || '')}</p>
+        <div class="flex gap-2">
+          <button class="px-3 py-2 rounded bg-slate-100" onclick="viewOnMap(${(item.coordinates && item.coordinates.lat) || 0}, ${(item.coordinates && item.coordinates.lng) || 0})">View on map</button>
+        </div>
+      `;
+      cardStackEl.appendChild(card);
+    }
+
+    function swipeLeft(){
+      if(!window.matchedItems || currentIndex >= window.matchedItems.length) return;
+      swipeHistory.push({ index: currentIndex, action: 'reject' });
+      currentIndex++;
+      renderNextCard();
+      undoBtn.disabled = swipeHistory.length === 0;
+    }
+
+    function swipeRight(){
+      if(!window.matchedItems || currentIndex >= window.matchedItems.length) return;
+      swipeHistory.push({ index: currentIndex, action: 'accept' });
+      matchedItem = window.matchedItems[currentIndex];
+      currentIndex++;
+      // show match modal and small confetti
+      document.getElementById('matchInfo').textContent = matchedItem && matchedItem.name ? `Matched: ${matchedItem.name}` : 'Matched';
+      openModal('matchModal');
+      launchConfettiSmall();
+      renderNextCard();
+      undoBtn.disabled = swipeHistory.length === 0;
+    }
+
+    function undoSwipe(){
+      if(swipeHistory.length === 0) return;
+      const last = swipeHistory.pop();
+      currentIndex = last.index;
+      renderNextCard();
+      undoBtn.disabled = swipeHistory.length === 0;
+    }
+
+    function viewOnMap(lat,lng){
+      if(!lat && !lng){ alert('Location not available'); return; }
+      window.open(`https://maps.google.com?q=${lat},${lng}`, '_blank', 'noopener');
+    }
+
+    // loader for backend data
+    window.loadMatchedItems = function(items){
+      if(!Array.isArray(items)) return;
+      window.matchedItems = items;
+      currentIndex = 0;
+      swipeHistory = [];
+      matchedItem = null;
+      if(document.getElementById('swipeModal').classList.contains('active')){
+        renderNextCard();
+      }
+    };
+
+    // open match from backend
+    window.openMatchFromExternal = function(item){
+      matchedItem = item;
+      document.getElementById('matchInfo').textContent = item && item.name ? `Matched: ${item.name}` : 'Matched';
+      openModal('matchModal');
+    };
+
+    /**************************************************************************
+     * Match Chat (clean: no auto replies; empty until backend messages arrive)
+     **************************************************************************/
+    function openMatchChat(){
+      closeModal('matchModal');
+      const chatEl = document.getElementById('matchChat');
+      chatEl.classList.add('active');
+      chatEl.setAttribute('aria-hidden','false');
+      document.getElementById('chatHeaderTitle').textContent = matchedItem && matchedItem.finderName ? matchedItem.finderName : 'Finder';
+      document.getElementById('chatHeaderSubtitle').textContent = matchedItem && matchedItem.name ? matchedItem.name : 'Matched item';
+
+      const messages = document.getElementById('chatMessages');
+      messages.innerHTML = '<div id="chatEmptyPlaceholder" class="text-center text-slate-500"><p>No messages yet. Start the conversation.</p></div>';
+    }
+
+    function closeMatchChat(){
+      const chatEl = document.getElementById('matchChat');
+      chatEl.classList.remove('active');
+      chatEl.setAttribute('aria-hidden','true');
+    }
+
+    // append a message from the local user
+    function sendMatchChat(){
+      const input = document.getElementById('matchChatInput');
+      const text = input.value.trim();
+      if(!text) return;
+      const messages = document.getElementById('chatMessages');
+      // remove placeholder
+      const placeholder = document.getElementById('chatEmptyPlaceholder');
+      if(placeholder) placeholder.remove();
+      const el = document.createElement('div');
+      el.className = 'mb-3 text-right';
+      el.innerHTML = `<div class="inline-block bg-blue-600 text-white p-3 rounded-2xl">${escapeHtml(text)}<div class="text-xs text-white/70 mt-1">Sent</div></div>`;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+      input.value = '';
+      // In real app: send to backend here
+    }
+
+    // helper for backend to add an incoming message
+    window.addIncomingMessage = function(text){
+      const messages = document.getElementById('chatMessages');
+      const placeholder = document.getElementById('chatEmptyPlaceholder');
+      if(placeholder) placeholder.remove();
+      const el = document.createElement('div');
+      el.className = 'mb-3 text-left';
+      el.innerHTML = `<div class="inline-block bg-gray-100 text-slate-900 p-3 rounded-2xl">${escapeHtml(text)}</div>`;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+    };
+
+    /**************************************************************************
+     * Report modal handlers & tutorial
+     **************************************************************************/
+    function showReportModal(){ openModal('reportModal'); }
+    function hideReportModal(){ closeModal('reportModal'); }
+    function submitReport(){ hideReportModal(); alert('Report submitted. Our team will review it.'); }
+
+    document.getElementById('gotItBtn').addEventListener('click', () => {
+      closeModal('tutorialOverlay');
+      localStorage.setItem('hasSeenTutorial','true');
+    });
+
+    if(!localStorage.getItem('hasSeenTutorial')) openModal('tutorialOverlay');
+
+    /**************************************************************************
+     * Utility helpers
+     **************************************************************************/
+    function escapeHtml(unsafe){
+      if(!unsafe) return '';
+      return String(unsafe).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]; });
+    }
+
+    // small confetti (tasteful)
+    function launchConfettiSmall(){
+      for(let i=0;i<18;i++){
+        const c = document.createElement('div');
+        c.style.position='fixed';
+        c.style.left=(50 + (Math.random()*40-20))+'%';
+        c.style.top=(40 + (Math.random()*10-5))+'%';
+        c.style.width='8px';
+        c.style.height='8px';
+        c.style.borderRadius='2px';
+        c.style.zIndex='9999';
+        c.style.pointerEvents='none';
+        c.style.background = ['#ffd166','#06d6a0','#118ab2','#ef476f'][Math.floor(Math.random()*4)];
+        document.body.appendChild(c);
+        c.animate([
+          { transform: `translateY(0) rotate(0deg)`, opacity:1 },
+          { transform: `translateY(${120 + Math.random()*60}px) rotate(${Math.random()*360}deg)`, opacity:0 }
+        ], { duration: 900 + Math.random()*700, easing: 'cubic-bezier(.2,.8,.2,1)'});
+        setTimeout(()=> c.remove(), 1800);
+      }
+    }
+
+    /**************************************************************************
+     * Expose some functions for backend integration
+     **************************************************************************/
+    window.loadMatchedItems = window.loadMatchedItems || function(items){ /* overwritten above */ };
+    window.openMatchFromExternal = window.openMatchFromExternal || function(item){ /* overwritten above */ };
+    window.addIncomingMessage = window.addIncomingMessage || function(){};
+
+  </script>
+</body>
+</html>
